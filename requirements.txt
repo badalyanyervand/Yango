@@ -1,2 +1,4 @@
-python-telegram-bot==21.4
-
+python-telegram-bot>=21.4
+httpx[http2]
+aiohttp
+nest_asyncio
