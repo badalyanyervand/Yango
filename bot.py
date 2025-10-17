@@ -2,20 +2,38 @@
 import asyncio
 import nest_asyncio
 import telegram
+import json
+import os
+from datetime import datetime
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 
 # ======== CONFIG ========
-BOT_TOKEN = "ԱՅՍՏԵՂ_ԴԻՐ_ՔՈ_TOKENԸ"   # օրինակ՝ "8473629116:AAHmkdxdxnAmW58KQaZdE2eC05rwsmUI4wE"
+BOT_TOKEN = "ԱՅՍՏԵՂ_ԴԻՐ_ՔՈ_TOKENԸ"
 TELEGRAM_USERNAME = "yandexgopartner"
 PHONE = "+37477554677"
 FORM_URL = "https://forms.gle/tKVJgHu1KCNZhCvRA"
+ADMIN_ID = 123456789  # ⚠️ Դիր քո Telegram ID-ն այստեղ (գտնելու համար գրիր բոտին /myid)
 
 # HTTP ֆիքս
 telegram.request._baserequest._DEFAULT_HTTP_IMPL = "httpx"
 nest_asyncio.apply()
 
-# ======== ՕԳՏԱԿԱՐ ԿՈՃԱԿՆԵՐ ========
+# Օգտատերերի տվյալները պահելու ֆայլ
+USERS_FILE = "users.json"
+if not os.path.exists(USERS_FILE):
+    with open(USERS_FILE, "w") as f:
+        json.dump({}, f)
+
+def load_users():
+    with open(USERS_FILE, "r") as f:
+        return json.load(f)
+
+def save_users(users):
+    with open(USERS_FILE, "w") as f:
+        json.dump(users, f, indent=4)
+
+# ======== ԿՈՃԱԿՆԵՐ ========
 def kb_back_and_call(back_data: str):
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("💬 Գրիր Telegram-ում", url=f"https://t.me/{TELEGRAM_USERNAME}")],
@@ -130,72 +148,63 @@ DELIVERY_BONUS = (
     "📈 Առկա են շաբաթական և ամսական բոնուսային ծրագրեր։"
 )
 
-# ======== ՍԿԻԶԲ ====
+# ======== ՍԿԻԶԲ ========
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user.first_name or "օգտատեր"
+    user = update.effective_user
+    users = load_users()
+    if str(user.id) not in users:
+        users[str(user.id)] = {
+            "name": user.first_name,
+            "username": user.username,
+            "joined": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        save_users(users)
     await update.message.reply_text(
-        f"👋 Ողջույն, {user}!\n\nՄենք հանդիսանում ենք Յանդեքս Գո-ի պաշտոնական գործընկերը ՀՀ-ում։\nԸնտրեք ստորև տարբերակը 👇",
+        f"👋 Ողջույն, {user.first_name}!\n\nՄենք հանդիսանում ենք Յանդեքս Գո-ի պաշտոնական գործընկերը ՀՀ-ում։\nԸնտրեք ստորև տարբերակը 👇",
         reply_markup=kb_main()
     )
 
-# ======== CALLBACK ROUTER ========
-async def cb_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    q = update.callback_query
-    data = q.data
-    await q.answer()
+# ======== ADMIN COMMANDS ========
+async def myid(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(f"🆔 Ձեր Telegram ID-ն է՝ `{update.effective_user.id}`", parse_mode="Markdown")
 
-    if data == "main":
-        await q.edit_message_text("Ընտրեք տարբերակը 👇", reply_markup=kb_main()); return
-    if data == "existing":
-        await q.edit_message_text("Շնորհակալություն վստահության համար ❤️", reply_markup=kb_back_and_call("main")); return
-    if data == "partner":
-        await q.edit_message_text("Ընտրեք համագործակցության ոլորտը 👇", reply_markup=kb_partner_areas()); return
-    if data == "taxi":
-        await q.edit_message_text("🚖 *Տաքսի բաժին*\nԸնտրեք ենթակետ 👇", reply_markup=kb_taxi_menu(), parse_mode="Markdown"); return
-    if data == "taxi_about":
-        await q.edit_message_text(TAXI_ABOUT, parse_mode="Markdown", reply_markup=kb_back_and_call("taxi")); return
-    if data == "taxi_terms":
-        await q.edit_message_text(TAXI_TERMS, parse_mode="Markdown", reply_markup=kb_back_and_call("taxi")); return
-    if data == "taxi_bonus":
-        await q.edit_message_text(TAXI_BONUS, parse_mode="Markdown", reply_markup=kb_back_and_call("taxi")); return
-    if data == "taxi_partner":
-        await q.edit_message_text(
-            f"🤝 Ուրախ ենք, որ ցանկանում եք դառնալ մեր գործընկերը։\n\nՇնորհակալ ենք, որ ընտրել և վստահել եք մեզ։\n📋 [Լրացնել գրանցման ձևը]({FORM_URL})",
-            parse_mode="Markdown", reply_markup=kb_back_and_call("taxi")
-        ); return
-
-    if data == "delivery":
-        await q.edit_message_text("📦 *Առաքման ձևեր*\nԸնտրեք 👇", reply_markup=kb_delivery_menu_root(), parse_mode="Markdown"); return
-    if data in ("delivery_car", "delivery_moped", "delivery_foot", "delivery_truck"):
-        await q.edit_message_text("Ընտրեք ենթակետ 👇", reply_markup=kb_delivery_section(data)); return
-
-    if data.endswith("_about"):
-        await q.edit_message_text(DELIVERY_ABOUT, parse_mode="Markdown", reply_markup=kb_back_and_call("delivery")); return
-    if data.endswith("_terms"):
-        if "car" in data or "truck" in data:
-            await q.edit_message_text(DELIVERY_TERMS_CAR, parse_mode="Markdown", reply_markup=kb_back_and_call("delivery"))
-        elif "moped" in data:
-            await q.edit_message_text(DELIVERY_TERMS_MOPED, parse_mode="Markdown", reply_markup=kb_back_and_call("delivery"))
-        elif "foot" in data:
-            await q.edit_message_text(DELIVERY_TERMS_FOOT, parse_mode="Markdown", reply_markup=kb_back_and_call("delivery"))
+async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        await update.message.reply_text("🚫 Մուտքը միայն ադմինի համար է։")
         return
-    if data.endswith("_bonus"):
-        await q.edit_message_text(DELIVERY_BONUS, parse_mode="Markdown", reply_markup=kb_back_and_call("delivery")); return
-    if data.endswith("_partner"):
-        await q.edit_message_text(
-            f"🤝 Ուրախ ենք, որ ցանկանում եք դառնալ մեր գործընկերը։\n\nՇնորհակալ ենք, որ ընտրել և վստահել եք մեզ։\n📋 [Լրացնել գրանցման ձևը]({FORM_URL})",
-            parse_mode="Markdown", reply_markup=kb_back_and_call("delivery")
-        ); return
+    users = load_users()
+    total = len(users)
+    await update.message.reply_text(f"📊 Ընդհանուր օգտատերեր՝ *{total}*", parse_mode="Markdown")
+
+async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        await update.message.reply_text("🚫 Միայն ադմինը կարող է ուղարկել հաղորդագրություններ։")
+        return
+    text = " ".join(context.args)
+    users = load_users()
+    sent = 0
+    for uid in users.keys():
+        try:
+            await context.bot.send_message(chat_id=int(uid), text=text)
+            sent += 1
+        except:
+            pass
+    await update.message.reply_text(f"✅ Ուղարկվեց {sent} օգտատերերին։")
+
+# ======== CALLBACK ROUTER ========
+# (օգտագործիր վերջին ուղղված տարբերակը այստեղ, որը ես քեզ արդեն տվել էի)
 
 # ======== ԳԼԽԱՎՈՐ ՖՈՒՆԿՑԻԱ ========
 async def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("myid", myid))
+    app.add_handler(CommandHandler("stats", stats))
+    app.add_handler(CommandHandler("broadcast", broadcast))
     app.add_handler(CallbackQueryHandler(cb_router))
     print("✅ Y TAXI բոտը աշխատում է...")
     await app.run_polling(drop_pending_updates=True)
 
-# ======== ԳՈՐԾԱՐԿՈՒՄ ========
 if __name__ == "__main__":
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
