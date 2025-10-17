@@ -6,7 +6,7 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
 # ======== CONFIG ========
-BOT_TOKEN = "ԱՅՍՏԵՂ_ԴԻՐ_ՔՈ_TOKENԸ"   # օրինակ՝ "8473629116:AAHmkdxdxnAmW58KQaZdE2eC05rwsmUI4wE"
+BOT_TOKEN = "8473629116:AAHmkdxdxnAmW58KQaZdE2eC05rwsmUI4wE"   # օրինակ՝ "8473629116:AAHmkdxdxnAmW58KQaZdE2eC05rwsmUI4wE"
 TELEGRAM_USERNAME = "yandexgopartner"
 PHONE = "+37477554677"
 FORM_URL = "https://forms.gle/tKVJgHu1KCNZhCvRA"
