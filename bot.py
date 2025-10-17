@@ -6,25 +6,20 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
 # ======== CONFIG ========
-BOT_TOKEN = "8473629116:AAHmkdxdxnAmW58KQaZdE2eC05rwsmUI4wE"   # օրինակ՝ "8473629116:AAHmkdxdxnAmW58KQaZdE2eC05rwsmUI4wE"
+BOT_TOKEN = "ԱՅՍՏԵՂ_ԴԻՐ_ՔՈ_TOKENԸ"   # օրինակ՝ "8473629116:AAHmkdxdxnAmW58KQaZdE2eC05rwsmUI4wE"
 TELEGRAM_USERNAME = "yandexgopartner"
 PHONE = "+37477554677"
 FORM_URL = "https://forms.gle/tKVJgHu1KCNZhCvRA"
 
-# HTTP սխալի ուղղում
+# HTTP ֆիքս
 telegram.request._baserequest._DEFAULT_HTTP_IMPL = "httpx"
-
-# nest_asyncio ֆիքս event loop-ի համար
 nest_asyncio.apply()
 
 # ======== ՕԳՏԱԿԱՐ ԿՈՃԱԿՆԵՐ ========
 def kb_back_and_call(back_data: str):
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("💬 Գրիր Telegram-ում", url=f"https://t.me/{TELEGRAM_USERNAME}")],
-        [
-            InlineKeyboardButton("📞 WhatsApp", url=f"https://wa.me/{PHONE.replace('+','')}"),
-            InlineKeyboardButton("📱 Զանգ (WhatsApp)", url=f"https://wa.me/{PHONE.replace('+','')}")
-        ],
+        [InlineKeyboardButton("📞 WhatsApp", url=f"https://wa.me/{PHONE.replace('+','')}")],
         [InlineKeyboardButton("⬅️ Հետ գնալ", callback_data=back_data)]
     ])
 
@@ -71,8 +66,8 @@ def kb_delivery_section(prefix: str):
 # ======== ՏԵՔՍՏԵՐ ========
 TAXI_ABOUT = (
     "💛 *Մեր մասին — Y TAXI*\n\n"
-    "Մենք հանդիսանում ենք *Յանդեքս Գո* ծառայության գործընկերը Հայաստանում 2017թ-ից, "
-    "և մեզ հետ համագործակցում են ավելի քան *10,000 վարորդներ*։\n\n"
+    "Մենք հանդիսանում ենք *Յանդեքս Գո* ծառայության գործընկերը Հայաստանում 2017թ-ից։\n"
+    "Մեզ հետ համագործակցում են ավելի քան *10,000 վարորդներ*։\n\n"
     "📍 Հասցե — ք. Երևան, Տիգրան Մեծ 55/6\n"
     "☎️ Հեռախոս — +374 77 554677 / +374 33 554677\n"
     "💬 Viber • WhatsApp • Telegram — +374 77 554677\n"
@@ -94,7 +89,48 @@ TAXI_BONUS = (
     "🔔 Ծանուցումները հասնում են Յանդեքս Պրո հավելվածում և մեր ալիքներով։"
 )
 
-# ======== ՍԿԶԲ ====
+DELIVERY_ABOUT = (
+    "📦 *Յանդեքս Գո Առաքում*\n\n"
+    "Մենք հանդիսանում ենք Յանդեքս Գո Առաքման պաշտոնական գործընկերը ՀՀ-ում։\n"
+    "Աշխատում ենք ավելի քան *12,000 առաքիչների* հետ՝ ապահովելով հուսալի և հարմարավետ պայմաններ։\n\n"
+    "📍 Հասցե՝ ք. Երևան, Տիգրան Մեծ 55/6\n"
+    "☎️ Հեռախոս՝ +374 77 554677\n"
+    "💬 Viber • WhatsApp • Telegram՝ +374 77 554677\n"
+    "🕒 Ժամեր՝ 10:00–02:00 ամեն օր"
+)
+
+DELIVERY_TERMS_CAR = (
+    "🚗 *Մեքենայով և բեռնատարով առաքումներ*\n\n"
+    "💰 Միջնորդավճար՝ 26.8%\n"
+    "💵 Պատվերները լինում են կանխիկ և անկանխիկ։\n"
+    "💳 Անկանխիկ պատվերների գումարները փոխանցվում են Իդրամ հաշվին՝ առավելագույնը 5 րոպեում։\n"
+    "❌ Այլ պահումներ և գանձումներ չկան։"
+)
+
+DELIVERY_TERMS_MOPED = (
+    "🛵 *Մոպեդով և մոտոցիկլով առաքումներ*\n\n"
+    "💰 Միջնորդավճար՝ 27%\n"
+    "🍔 Հիմնականում կատարվում են սննդի պատվերներ։\n"
+    "💸 Առաքիչը պետք է ունենա հաշվեկշռին առնվազն 20,000 դրամ՝ վճարում առաքման պահին տարբերակի համար։\n"
+    "🎒 Պարտադիր է ունենալ տերմոպայուսակ։"
+)
+
+DELIVERY_TERMS_FOOT = (
+    "🚶‍♂️ *Ոտքով առաքումներ*\n\n"
+    "💰 Միջնորդավճար՝ 27%\n"
+    "🍕 Առաքվում են սննդի պատվերներ և փոքր փաթեթներ։\n"
+    "💸 Առաքիչը պետք է ունենա հաշվեկշռին առնվազն 20,000 դրամ՝ վճարում առաքման պահին տարբերակի համար։\n"
+    "🎒 Պարտադիր է ունենալ տերմոպայուսակ։"
+)
+
+DELIVERY_BONUS = (
+    "🎁 *Բոնուսային համակարգ*\n\n"
+    "🚗 Մեքենայով և բեռնատարով առաքիչների համար՝ մինչև *15,000 դրամ* բոնուս։\n"
+    "🛵 Մոպեդով և ոտքով առաքիչների համար՝ մինչև *10,000 դրամ* բոնուս։\n"
+    "📈 Առկա են շաբաթական և ամսական բոնուսային ծրագրեր։"
+)
+
+# ======== ՍԿԻԶԲ ====
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user.first_name or "օգտատեր"
     await update.message.reply_text(
@@ -124,31 +160,34 @@ async def cb_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await q.edit_message_text(TAXI_BONUS, parse_mode="Markdown", reply_markup=kb_back_and_call("taxi")); return
     if data == "taxi_partner":
         await q.edit_message_text(
-            "🤝 **Ուրախ ենք, որ ցանկանում եք դառնալ մեր գործընկերը։**\n\nՇնորհակալ ենք, որ ընտրել և վստահել եք մեզ։\n"
-            f"📋 [Լրացնել գրանցման ձևը]({FORM_URL})",
+            f"🤝 Ուրախ ենք, որ ցանկանում եք դառնալ մեր գործընկերը։\n\nՇնորհակալ ենք, որ ընտրել և վստահել եք մեզ։\n📋 [Լրացնել գրանցման ձևը]({FORM_URL})",
             parse_mode="Markdown", reply_markup=kb_back_and_call("taxi")
         ); return
 
     if data == "delivery":
         await q.edit_message_text("📦 *Առաքման ձևեր*\nԸնտրեք 👇", reply_markup=kb_delivery_menu_root(), parse_mode="Markdown"); return
-
     if data in ("delivery_car", "delivery_moped", "delivery_foot", "delivery_truck"):
-        names = {
-            "delivery_car": "🚗 Մեքենայով առաքումներ",
-            "delivery_moped": "🛵 Մոպեդով առաքումներ",
-            "delivery_foot": "🚶‍♂️ Ոտքով առաքումներ",
-            "delivery_truck": "🚛 Բեռնատարով առաքումներ"
-        }
-        await q.edit_message_text(f"{names[data]}\nԸնտրեք ենթակետ 👇", reply_markup=kb_delivery_section(data)); return
+        await q.edit_message_text("Ընտրեք ենթակետ 👇", reply_markup=kb_delivery_section(data)); return
 
+    if data.endswith("_about"):
+        await q.edit_message_text(DELIVERY_ABOUT, parse_mode="Markdown", reply_markup=kb_back_and_call("delivery")); return
+    if data.endswith("_terms"):
+        if "car" in data or "truck" in data:
+            await q.edit_message_text(DELIVERY_TERMS_CAR, parse_mode="Markdown", reply_markup=kb_back_and_call("delivery"))
+        elif "moped" in data:
+            await q.edit_message_text(DELIVERY_TERMS_MOPED, parse_mode="Markdown", reply_markup=kb_back_and_call("delivery"))
+        elif "foot" in data:
+            await q.edit_message_text(DELIVERY_TERMS_FOOT, parse_mode="Markdown", reply_markup=kb_back_and_call("delivery"))
+        return
+    if data.endswith("_bonus"):
+        await q.edit_message_text(DELIVERY_BONUS, parse_mode="Markdown", reply_markup=kb_back_and_call("delivery")); return
     if data.endswith("_partner"):
         await q.edit_message_text(
-            "🤝 **Ուրախ ենք, որ ցանկանում եք դառնալ մեր գործընկերը։**\n\nՇնորհակալ ենք, որ ընտրել և վստահել եք մեզ։\n"
-            f"📋 [Լրացնել գրանցման ձևը]({FORM_URL})",
+            f"🤝 Ուրախ ենք, որ ցանկանում եք դառնալ մեր գործընկերը։\n\nՇնորհակալ ենք, որ ընտրել և վստահել եք մեզ։\n📋 [Լրացնել գրանցման ձևը]({FORM_URL})",
             parse_mode="Markdown", reply_markup=kb_back_and_call("delivery")
         ); return
 
-# ======== ԳԼԽԱՎՈՐ ԱՍԻՆԽՐՈՆ ՖՈՒՆԿՑԻԱ ========
+# ======== ԳԼԽԱՎՈՐ ՖՈՒՆԿՑԻԱ ========
 async def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
@@ -156,7 +195,7 @@ async def main():
     print("✅ Y TAXI բոտը աշխատում է...")
     await app.run_polling(drop_pending_updates=True)
 
-# ======== ԳՈՐԾԱՐԿՈՒՄ (macOS-safe) ========
+# ======== ԳՈՐԾԱՐԿՈՒՄ ========
 if __name__ == "__main__":
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
