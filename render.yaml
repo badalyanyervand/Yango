@@ -1,0 +1,11 @@
+services:
+  - type: worker
+    name: ytaxi-bot
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python bot.py"
+    envVars:
+      - key: BOT_TOKEN
+        value: "8473629116:AAHmkdxdxnAmW58KQaZdE2eC05rwsmUI4wE"
+      - key: ADMIN_ID
+        value: "8473629116:AAHmkdxdxnAmW58KQaZdE2eC05rwsmUI4wE"
